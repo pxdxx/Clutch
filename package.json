@@ -1,0 +1,58 @@
+{
+  "name": "clutch",
+  "version": "1.0.2",
+  "description": "Clutch — минималистичные скриншоты для Windows (трей, горячие клавиши, редактор)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:icons": "node scripts/build-icons.mjs",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win --x64"
+  },
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pxdxx/Clutch.git"
+  },
+  "homepage": "https://github.com/pxdxx/Clutch#readme",
+  "bugs": {
+    "url": "https://github.com/pxdxx/Clutch/issues"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^26.8.1",
+    "png-to-ico": "^3.0.1",
+    "sharp": "^0.34.5"
+  },
+  "build": {
+    "appId": "com.clutch.screenshot",
+    "productName": "Clutch",
+    "copyright": "Copyright © 2026",
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "icons/ico/clutch.ico",
+      "artifactName": "${productName}-${version}-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Clutch"
+    }
+  }
+}
