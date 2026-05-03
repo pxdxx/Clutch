@@ -1,0 +1,189 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  background: #111113;
+  color: #e4e4e7;
+  font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Toolbar ─────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 48px;
+  padding: 0 12px;
+  background: #111113;
+  border-bottom: 1px solid #1f1f23;
+  flex-shrink: 0;
+}
+
+.toolGroup {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.sep {
+  width: 1px;
+  height: 20px;
+  background: #27272a;
+  margin: 0 6px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* ── Tool buttons ────────────────────────── */
+.tool {
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #71717a;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 100ms, color 100ms, border-color 100ms;
+}
+
+.tool:hover {
+  background: #1c1c1f;
+  color: #a1a1aa;
+}
+
+.tool.active {
+  background: #27272a;
+  border-color: #3f3f46;
+  color: #e4e4e7;
+}
+
+/* ── Color ───────────────────────────────── */
+.colorWrap {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  border: 1px solid #27272a;
+  background: #1c1c1f;
+  overflow: hidden;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.colorSwatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.colorWrap input[type=color] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Stroke width ────────────────────────── */
+.strokeWrap {
+  padding: 0 4px;
+}
+
+.strokeWrap input[type=range] {
+  width: 80px;
+  accent-color: #6366f1;
+  cursor: pointer;
+}
+
+/* ── Action buttons ──────────────────────── */
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 7px;
+  border: 1px solid #27272a;
+  background: #1c1c1f;
+  color: #d4d4d8;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 100ms, border-color 100ms;
+}
+
+.action:hover {
+  background: #27272a;
+  border-color: #3f3f46;
+}
+
+.action.primary {
+  background: #27272a;
+  border-color: #3f3f46;
+  color: #fafafa;
+}
+
+.action.primary:hover {
+  background: #3f3f46;
+}
+
+/* ── Canvas area ─────────────────────────── */
+.canvas-area {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0c0c0e;
+}
+
+canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Toast ───────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(30, 30, 35, 0.92);
+  border: 1px solid #27272a;
+  color: #d4d4d8;
+  font-size: 12px;
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  transition: opacity 140ms, transform 140ms;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

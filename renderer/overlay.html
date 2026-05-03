@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'" />
+  <title>Clutch</title>
+  <link rel="icon" type="image/png" href="../icons/png/clutch-icon-48.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #000;
+      user-select: none;
+      font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+    }
+
+    #bgCv, #annCv {
+      position: fixed;
+      top: 0; left: 0;
+      display: block;
+      cursor: crosshair;
+    }
+    #bgCv { z-index: 1; }
+    #annCv { z-index: 2; pointer-events: none; }
+
+    #sel {
+      position: fixed;
+      z-index: 3;
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.48);
+      border: 1.5px solid rgba(255,255,255,0.85);
+      border-radius: 1px;
+    }
+
+    #toolbar {
+      position: fixed;
+      z-index: 10;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 7px 6px;
+      background: rgba(18, 18, 22, 0.93);
+      backdrop-filter: blur(20px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 13px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.04) inset;
+      animation: tbIn 160ms cubic-bezier(0.22,1,0.36,1);
+    }
+
+    @keyframes tbIn {
+      from { opacity: 0; transform: scale(0.88) translateY(4px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0); }
+    }
+
+    .tbBtn {
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #71717a;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 80ms, color 80ms, border-color 80ms;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .tbBtn:hover { background: rgba(255,255,255,0.07); color: #d4d4d8; }
+    .tbBtn.active {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.18);
+      color: #fafafa;
+    }
+
+    .tbSep { width: 22px; height: 1px; background: rgba(255,255,255,0.08); margin: 2px 0; flex-shrink: 0; }
+
+    .colorWrap {
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .colorSwatch {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      pointer-events: none;
+    }
+    .colorWrap input[type=color] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer;
+      width: 100%; height: 100%;
+    }
+
+    .tbAction {
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: #a1a1aa;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 80ms, color 80ms;
+      flex-shrink: 0;
+    }
+    .tbAction:hover { background: rgba(255,255,255,0.1); color: #e4e4e7; }
+    .tbAction.copy:hover { background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.35); color: #a5b4fc; }
+    .tbAction.save:hover { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.3); color: #86efac; }
+    .tbAction.close:hover { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: #fca5a5; }
+
+    #hint {
+      position: fixed;
+      bottom: 18px; left: 50%;
+      transform: translateX(-50%);
+      padding: 7px 16px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.45);
+      font-size: 12px;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bgCv"></canvas>
+  <canvas id="annCv"></canvas>
+  <div id="sel"></div>
+
+  <div id="toolbar">
+    <button class="tbBtn active" data-tool="arrow" title="Стрелка">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="19" x2="19" y2="5"/><polyline points="9 5 19 5 19 15"/>
+      </svg>
+    </button>
+    <button class="tbBtn" data-tool="pen" title="Маркер">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+      </svg>
+    </button>
+    <button class="tbBtn" data-tool="rect" title="Рамка">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+      </svg>
+    </button>
+
+    <label class="colorWrap" title="Цвет">
+      <div class="colorSwatch" id="swatch"></div>
+      <input type="color" id="colorPicker" value="#ef4444" />
+    </label>
+
+    <div class="tbSep"></div>
+
+    <button class="tbAction" id="btnUndo" title="Отменить (Ctrl+Z)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>
+      </svg>
+    </button>
+
+    <div class="tbSep"></div>
+
+    <button class="tbAction copy" id="btnCopy" title="Скопировать (Enter)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+    </button>
+    <button class="tbAction save" id="btnSave" title="Сохранить как">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </button>
+
+    <div class="tbSep"></div>
+
+    <button class="tbAction close" id="btnCancel" title="Отмена (Esc)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <div id="hint">Выделите область &nbsp;·&nbsp; Esc — отмена</div>
+
+  <script src="./overlay.js"></script>
+</body>
+</html>
