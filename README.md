@@ -8,7 +8,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-4a9eff?style=for-the-badge)](LICENSE)
 [![Electron](https://img.shields.io/badge/Electron-33-47848f?style=for-the-badge&logo=electron)](https://www.electronjs.org/)
-[![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?style=for-the-badge&logo=windows)](https://github.com/YOUR_GITHUB_USERNAME/clutch/releases)
+[![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?style=for-the-badge&logo=windows)](https://github.com/pxdxx/Clutch/releases)
 
 <br>
 
@@ -16,10 +16,8 @@
 
 | Способ | Ссылка |
 |--------|--------|
-| **Установщик (рекомендуется)** | [**Releases → последняя версия**](https://github.com/YOUR_GITHUB_USERNAME/clutch/releases/latest) — файл `Clutch-1.0.0-Setup.exe` (имя может отличаться по версии) |
-| **Исходный код** | `git clone https://github.com/YOUR_GITHUB_USERNAME/clutch.git` |
-
-> Замените **`YOUR_GITHUB_USERNAME`** на ваш логин GitHub во всех ссылках этого README и в `package.json` (`repository`, `homepage`, `bugs`).
+| **Установщик (рекомендуется)** | [**Releases → последняя версия**](https://github.com/pxdxx/Clutch/releases/latest) — файл `Clutch-1.0.0-Setup.exe` (имя может отличаться по версии) |
+| **Исходный код** | [`github.com/pxdxx/Clutch`](https://github.com/pxdxx/Clutch) · `git clone https://github.com/pxdxx/Clutch.git` |
 
 <br>
 
@@ -53,8 +51,8 @@
 ## Разработка
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/clutch.git
-cd clutch
+git clone https://github.com/pxdxx/Clutch.git
+cd Clutch
 npm install
 npm start
 ```
@@ -81,23 +79,22 @@ npm run dist
 
 ---
 
-## Первый раз выкладываем на GitHub
+## Git и GitHub
 
-1. Зарегистрируйтесь на [github.com](https://github.com/) и установите [Git](https://git-scm.com/download/win).
-2. В корне проекта замените **`YOUR_GITHUB_USERNAME`** в `README.md` и `package.json` на ваш ник.
-3. Создайте **новый репозиторий** на GitHub (без README, если он уже есть локально), например имя **`clutch`**.
-4. В PowerShell из папки проекта:
+Репозиторий: **[github.com/pxdxx/Clutch](https://github.com/pxdxx/Clutch)**. Логин в ссылке (`pxdxx`) — это и есть «имя пользователя GitHub».
+
+Если проект только локально и remote ещё не настроен:
 
 ```powershell
 git init
 git add .
 git commit -m "Initial release: Clutch screenshot tool"
 git branch -M main
-git remote add origin https://github.com/YOUR_GITHUB_USERNAME/clutch.git
+git remote add origin https://github.com/pxdxx/Clutch.git
 git push -u origin main
 ```
 
-5. Соберите установщик (`npm run dist`) и выложите файл из **`release/`** в **Releases**.
+Дальше: `npm run dist` и загрузка **`release/Clutch-*-Setup.exe`** в [Releases](https://github.com/pxdxx/Clutch/releases).
 
 ---
 
