@@ -67,29 +67,6 @@ npm run build:icons
 npm run dist
 ```
 
-Готовый **NSIS-установщик** появится в папке **`release/`** (например `Clutch-1.0.0-Setup.exe`). Его можно загрузить в [GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
-
-Кратко: **Releases → Draft a new release → тег версии (например `v1.0.0`) → прикрепить `.exe` из `release/` → Publish release**.
-
----
-
-## Git и GitHub
-
-Репозиторий: **[github.com/pxdxx/Clutch](https://github.com/pxdxx/Clutch)**. Логин в ссылке (`pxdxx`) — это и есть «имя пользователя GitHub».
-
-Если проект только локально и remote ещё не настроен:
-
-```powershell
-git init
-git add .
-git commit -m "Initial release: Clutch screenshot tool"
-git branch -M main
-git remote add origin https://github.com/pxdxx/Clutch.git
-git push -u origin main
-```
-
-Дальше: `npm run dist` и загрузка **`release/Clutch-*-Setup.exe`** в [Releases](https://github.com/pxdxx/Clutch/releases).
-
 ---
 
 ## Структура проекта
@@ -106,12 +83,6 @@ clutch/
 ├── scripts/          # build-icons.mjs (dev)
 └── release/          # артефакты electron-builder (в .gitignore)
 ```
-
----
-
-## Лицензия
-
-[MIT](LICENSE)
 
 ---
 
