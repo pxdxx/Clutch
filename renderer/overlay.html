@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'" />
+  <title>Clutch</title>
+  <link rel="icon" type="image/png" href="../icons/png/clutch-icon-48.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #000;
+      user-select: none;
+      font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+    }
+
+    #bgCv, #annCv {
+      position: fixed;
+      top: 0; left: 0;
+      display: block;
+      cursor: crosshair;
+    }
+    #bgCv { z-index: 1; }
+    #annCv { z-index: 2; pointer-events: none; }
+
+    #handleLayer {
+      position: fixed;
+      inset: 0;
+      z-index: 6;
+      pointer-events: none;
+      display: none;
+    }
+
+    .resizeH {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      margin: -3px 0 0 -3px;
+      background: rgba(255,255,255,0.88);
+      border: 1px solid rgba(0,0,0,0.28);
+      border-radius: 1px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.15);
+      pointer-events: auto;
+      z-index: 7;
+    }
+    .resizeH[data-h="nw"], .resizeH[data-h="se"] { cursor: nwse-resize; }
+    .resizeH[data-h="ne"], .resizeH[data-h="sw"] { cursor: nesw-resize; }
+    .resizeH[data-h="n"], .resizeH[data-h="s"] { cursor: ns-resize; }
+    .resizeH[data-h="e"], .resizeH[data-h="w"] { cursor: ew-resize; }
+
+    #sel {
+      position: fixed;
+      z-index: 3;
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.48);
+      border: 1.5px solid rgba(255,255,255,0.85);
+      border-radius: 1px;
+    }
+
+    #selSizeLabel {
+      position: fixed;
+      z-index: 5;
+      display: none;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+      color: rgba(255,255,255,0.92);
+      background: rgba(12,12,16,0.82);
+      border: 1px solid rgba(255,255,255,0.12);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    #toolbar {
+      position: fixed;
+      z-index: 10;
+      display: none;
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 2px;
+      padding: 5px 8px;
+      max-width: calc(100vw - 16px);
+      background: rgba(22, 22, 28, 0.94);
+      backdrop-filter: blur(16px) saturate(1.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.05) inset;
+      animation: tbIn 140ms cubic-bezier(0.22,1,0.36,1);
+    }
+
+    @keyframes tbIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .tbBtn {
+      width: 32px; height: 32px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #8b8b9a;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 70ms, color 70ms, border-color 70ms;
+      flex-shrink: 0;
+    }
+    .tbBtn:hover { background: rgba(255,255,255,0.08); color: #e4e4e7; }
+    .tbBtn.active {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.14);
+      color: #fafafa;
+    }
+
+    .tbSep {
+      width: 1px;
+      height: 22px;
+      background: rgba(255,255,255,0.1);
+      margin: 0 3px;
+      flex-shrink: 0;
+    }
+
+    .tbLineWrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+    #btnLineWidth {
+      width: 36px;
+      height: 32px;
+      border-radius: 7px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: #c4c4d4;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: ui-monospace, Consolas, monospace;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+    #btnLineWidth:hover { border-color: rgba(255,255,255,0.2); color: #fff; }
+    #lwPopover {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      min-width: 120px;
+      padding: 6px;
+      border-radius: 8px;
+      background: rgba(28,28,34,0.98);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.5);
+      z-index: 20;
+    }
+    #lwPopover.open { display: block; }
+    #lwPopover .lwOpt {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 6px 8px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: #d4d4d8;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: left;
+    }
+    #lwPopover .lwOpt:hover { background: rgba(255,255,255,0.08); }
+    #lwPopover .lwOpt.active { background: rgba(74, 158, 255, 0.15); color: #93c5fd; }
+    #lwPopover .lwBar {
+      height: 3px;
+      border-radius: 2px;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    .colorRow {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0 2px;
+      flex-shrink: 0;
+    }
+    .tbColor {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      background: var(--cc);
+      cursor: pointer;
+      padding: 0;
+      flex-shrink: 0;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
+    }
+    .tbColor:hover {
+      filter: brightness(1.08);
+    }
+    .tbColor.active {
+      border-color: rgba(255,255,255,0.85);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(0,0,0,0.15);
+    }
+
+    .tbAction {
+      width: 32px; height: 32px;
+      border-radius: 7px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      color: #9ca3af;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 70ms, color 70ms;
+      flex-shrink: 0;
+    }
+    .tbAction:hover { background: rgba(255,255,255,0.1); color: #e4e4e7; }
+    .tbAction.copy:hover { background: rgba(99,102,241,0.18); border-color: rgba(99,102,241,0.35); color: #a5b4fc; }
+    .tbAction.save:hover { background: rgba(34,197,94,0.14); border-color: rgba(34,197,94,0.28); color: #86efac; }
+    .tbAction.close:hover { background: rgba(239,68,68,0.14); border-color: rgba(239,68,68,0.28); color: #fca5a5; }
+
+    #hint, #hintAnnot {
+      position: fixed;
+      bottom: 18px; left: 50%;
+      transform: translateX(-50%);
+      padding: 7px 16px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.45);
+      font-size: 12px;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 8;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bgCv"></canvas>
+  <canvas id="annCv"></canvas>
+  <div id="sel"></div>
+  <div id="handleLayer"></div>
+  <div id="selSizeLabel"></div>
+
+  <div id="toolbar">
+    <button class="tbBtn active" data-tool="arrow" title="Стрелка">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="19" x2="19" y2="5"/><polyline points="9 5 19 5 19 15"/>
+      </svg>
+    </button>
+    <button class="tbBtn" data-tool="pen" title="Маркер">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+      </svg>
+    </button>
+    <button class="tbBtn" data-tool="rect" title="Рамка">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+      </svg>
+    </button>
+    <button class="tbBtn" data-tool="blur" title="Пиксельное размытие (мозаика)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="3" width="6" height="6" rx="1" fill="currentColor" opacity="0.35"/>
+        <rect x="10" y="3" width="6" height="6" rx="1" fill="currentColor" opacity="0.55"/>
+        <rect x="17" y="3" width="4" height="6" rx="1" fill="currentColor" opacity="0.25"/>
+        <rect x="3" y="10" width="6" height="6" rx="1" fill="currentColor" opacity="0.55"/>
+        <rect x="10" y="10" width="6" height="6" rx="1" fill="currentColor" opacity="0.9"/>
+        <rect x="17" y="10" width="4" height="6" rx="1" fill="currentColor" opacity="0.45"/>
+        <rect x="3" y="17" width="6" height="4" rx="1" fill="currentColor" opacity="0.3"/>
+        <rect x="10" y="17" width="6" height="4" rx="1" fill="currentColor" opacity="0.5"/>
+        <rect x="17" y="17" width="4" height="4" rx="1" fill="currentColor" opacity="0.65"/>
+      </svg>
+    </button>
+
+    <div class="tbSep"></div>
+
+    <div class="tbLineWrap">
+      <button type="button" id="btnLineWidth" title="Толщина линии">4</button>
+      <div id="lwPopover" role="menu">
+        <button type="button" class="lwOpt" data-lw="2"><span class="lwBar" style="width:18px"></span>2 px</button>
+        <button type="button" class="lwOpt" data-lw="3"><span class="lwBar" style="width:22px;height:3.5px"></span>3 px</button>
+        <button type="button" class="lwOpt active" data-lw="4"><span class="lwBar" style="width:26px;height:4px"></span>4 px</button>
+        <button type="button" class="lwOpt" data-lw="6"><span class="lwBar" style="width:30px;height:5px"></span>6 px</button>
+        <button type="button" class="lwOpt" data-lw="8"><span class="lwBar" style="width:34px;height:6px"></span>8 px</button>
+        <button type="button" class="lwOpt" data-lw="12"><span class="lwBar" style="width:38px;height:7px"></span>12 px</button>
+      </div>
+    </div>
+
+    <div class="colorRow" title="Цвет">
+      <button type="button" class="tbColor active" data-color="#d43535" style="--cc:#d43535" aria-label="Красный"></button>
+      <button type="button" class="tbColor" data-color="#35d48a" style="--cc:#35d48a" aria-label="Зелёный"></button>
+      <button type="button" class="tbColor" data-color="#3584d4" style="--cc:#3584d4" aria-label="Синий"></button>
+      <button type="button" class="tbColor" data-color="#d49a35" style="--cc:#d49a35" aria-label="Бежевый"></button>
+    </div>
+
+    <div class="tbSep"></div>
+
+    <button class="tbAction" id="btnUndo" title="Отменить (Ctrl+Z)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>
+      </svg>
+    </button>
+
+    <div class="tbSep"></div>
+
+    <button class="tbAction copy" id="btnCopy" title="Скопировать (Enter)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+    </button>
+    <button class="tbAction save" id="btnSave" title="Сохранить как">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </button>
+
+    <div class="tbSep"></div>
+
+    <button class="tbAction close" id="btnCancel" title="Отмена (Esc)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <div id="hint">Выделите область &nbsp;·&nbsp; Esc — отмена</div>
+  <div id="hintAnnot" style="display:none">Рамка — перенос · углы — размер · Esc</div>
+
+  <script src="./overlay.js"></script>
+</body>
+</html>
